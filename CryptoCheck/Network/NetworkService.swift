@@ -23,10 +23,10 @@ final class NetworkService {
     // MARK: - Properties
     
     private let baseURL = "https://api.coingecko.com/api/v3"
-    private let apiKey = "CG-7g5JcowMt1duvMVcDoZPkYxc"
+    private let apiKey = "YourAPIKey"
     
     private let newsBaseURL = "https://newsdata.io/api/1/news"
-    private let apiNewsKey = "pub_4f7950ba7d514f5da72860e51e633dd7"
+    private let apiNewsKey = "YourAPIKey"
     
     // MARK: - Helpers
     
