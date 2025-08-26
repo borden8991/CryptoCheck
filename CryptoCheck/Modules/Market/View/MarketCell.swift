@@ -44,25 +44,25 @@ final class MarketCell: UITableViewCell {
         numberLabel.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(8)
             $0.centerY.equalToSuperview()
-            $0.width.equalTo(30)
+            $0.width.equalTo(30).priority(.low)
         }
         
         nameLabel.snp.makeConstraints {
             $0.leading.equalTo(numberLabel.snp.trailing).offset(8)
             $0.centerY.equalToSuperview()
-            $0.width.equalTo(50)
+            $0.width.equalTo(50).priority(.low)
         }
         
         priceLabel.snp.makeConstraints {
             $0.leading.equalTo(nameLabel.snp.trailing).offset(8)
             $0.centerY.equalToSuperview()
-            $0.width.equalTo(80)
+            $0.width.equalTo(80).priority(.low)
         }
         
         changeLabel.snp.makeConstraints {
             $0.leading.equalTo(priceLabel.snp.trailing).offset(8)
             $0.centerY.equalToSuperview()
-            $0.width.equalTo(60)
+            $0.width.equalTo(60).priority(.low)
         }
         
         marketCapLabel.snp.makeConstraints {

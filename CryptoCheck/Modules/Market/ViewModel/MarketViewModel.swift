@@ -54,8 +54,8 @@ final class MarketViewModel {
         isMarketCapSortedDescending.toggle()
         filteredCoins.sort { lhs, rhs in
             isMarketCapSortedDescending
-                ? lhs.marketCap > rhs.marketCap
-                : lhs.marketCap < rhs.marketCap
+                ? lhs.marketCap < rhs.marketCap
+                : lhs.marketCap > rhs.marketCap
         }
         onUpdate?()
     }

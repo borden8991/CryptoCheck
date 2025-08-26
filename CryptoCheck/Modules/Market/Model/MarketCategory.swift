@@ -7,7 +7,7 @@
 
 enum MarketCategory: CaseIterable {
     case top100, defi, nft, metaverse, ai, gaming
-
+    
     var title: String {
         switch self {
         case .top100: return "Top 100"
@@ -18,7 +18,7 @@ enum MarketCategory: CaseIterable {
         case .gaming: return "Gaming"
         }
     }
-
+    
     var categoryId: String? {
         switch self {
         case .top100: return nil
@@ -30,5 +30,3 @@ enum MarketCategory: CaseIterable {
         }
     }
 }
-
-

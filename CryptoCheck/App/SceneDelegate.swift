@@ -21,7 +21,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let marketVC = UINavigationController(rootViewController: MarketViewController())
         let portfolioVC = UIViewController()
         let searchVC = UINavigationController(rootViewController: SearchViewController())
-        let overviewVC = UIViewController()
+        let overviewVC = UINavigationController(rootViewController: NewsViewController())
         let profileVC = UINavigationController(rootViewController: ProfileViewController())
         
         marketVC.tabBarItem = UITabBarItem(title: "Рынок",

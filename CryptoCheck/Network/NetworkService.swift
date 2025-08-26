@@ -25,6 +25,9 @@ final class NetworkService {
     private let baseURL = "https://api.coingecko.com/api/v3"
     private let apiKey = "CG-7g5JcowMt1duvMVcDoZPkYxc"
     
+    private let newsBaseURL = "https://newsdata.io/api/1/news"
+    private let apiNewsKey = "pub_4f7950ba7d514f5da72860e51e633dd7"
+    
     // MARK: - Helpers
     
     private func makeRequest(url: URL) -> URLRequest {
@@ -38,8 +41,7 @@ final class NetworkService {
     
     func fetchMarketCoins(
         vsCurrency: String = "usd",
-        completion: @escaping (Result<[CoinModel], Error>) -> Void
-    ) {
+        completion: @escaping (Result<[CoinModel], Error>) -> Void) {
         let urlString =
         "\(baseURL)/coins/markets?vs_currency=\(vsCurrency)" +
         "&order=market_cap_desc&per_page=50&page=1" +
@@ -152,4 +154,37 @@ final class NetworkService {
             }
         }.resume()
     }
+    
+    // MARK: - News
+    
+    func fetchNews(page: String? = nil, completion: @escaping (Result<[NewsArticle], Error>) -> Void) {
+            var components = URLComponents(string: newsBaseURL)
+            let queryItems: [URLQueryItem] = [
+                .init(name: "apikey", value: apiNewsKey),
+                .init(name: "q", value: "crypto OR bitcoin OR ethereum"),
+                .init(name: "language", value: "ru,en"),
+                .init(name: "country", value: "ru,us,gb")
+            ] + (page != nil ? [URLQueryItem(name: "page", value: page)] : [])
+            
+            components?.queryItems = queryItems
+            
+            guard let url = components?.url else {
+                completion(.failure(NetworkError.invalidURL))
+                return
+            }
+            
+            URLSession.shared.dataTask(with: url) { data, _, error in
+                if let error { completion(.failure(error)); return }
+                guard let data else {
+                    completion(.failure(NetworkError.decodingError))
+                    return
+                }
+                do {
+                    let response = try JSONDecoder().decode(NewsResponse.self, from: data)
+                    completion(.success(response.results ?? []))
+                } catch {
+                    completion(.failure(error))
+                }
+            }.resume()
+        }
 }
