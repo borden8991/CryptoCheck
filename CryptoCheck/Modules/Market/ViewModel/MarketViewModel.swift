@@ -18,10 +18,10 @@ final class MarketViewModel {
     
     private(set) var coins: [CoinModel] = []
     private(set) var filteredCoins: [CoinModel] = []
-    
-    private var isMarketCapSortedDescending = false
     private(set) var btcPrice: Double = 1.0
     private(set) var isLoading: Bool = false
+    
+    private var isMarketCapSortedDescending = false
     
     var currencyMode: CurrencyMode = .usd
     

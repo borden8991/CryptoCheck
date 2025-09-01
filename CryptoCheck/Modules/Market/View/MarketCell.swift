@@ -23,6 +23,7 @@ final class MarketCell: UITableViewCell {
     private let marketCapLabel = MarketCell.makeLabel(fontWeight: .regular, alignment: .right)
     
     // MARK: - Init
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupUI()

@@ -10,6 +10,9 @@ import SnapKit
 
 final class MarketViewController: UIViewController {
     
+    var onCoinSelected: ((CoinModel) -> Void)?
+    var onSearchRequested: (() -> Void)?
+    
     // MARK: - Properties
     
     private let viewModel = MarketViewModel()
@@ -22,8 +25,6 @@ final class MarketViewController: UIViewController {
         tableView.separatorStyle = .none
         return tableView
     }()
-    
-    private let activityIndicator = UIActivityIndicatorView(style: .large)
     
     private let marketCapHeaderLabel: UILabel = {
         let label = UILabel()
@@ -79,7 +80,6 @@ final class MarketViewController: UIViewController {
     
     private func setupUI() {
         view.backgroundColor = .systemBackground
-        title = "Market"
         
         tableView.tableHeaderView = makeTableHeader()
         
@@ -87,7 +87,6 @@ final class MarketViewController: UIViewController {
         
         view.addSubview(currencySwitch)
         view.addSubview(tableView)
-        view.addSubview(activityIndicator)
         
         currencySwitch.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide).offset(8)
@@ -98,10 +97,6 @@ final class MarketViewController: UIViewController {
             $0.top.equalTo(currencySwitch.snp.bottom).offset(8)
             $0.leading.trailing.equalToSuperview()
             $0.bottom.equalTo(view.safeAreaLayoutGuide)
-        }
-        
-        activityIndicator.snp.makeConstraints {
-            $0.center.equalToSuperview()
         }
     }
     
@@ -176,12 +171,6 @@ final class MarketViewController: UIViewController {
     }
     
     private func bindViewModel() {
-        viewModel.onLoadingStatusChanged = { [weak self] isLoading in
-            DispatchQueue.main.async {
-                isLoading ? self?.activityIndicator.startAnimating() : self?.activityIndicator.stopAnimating()
-            }
-        }
-        
         viewModel.onUpdate = { [weak self] in
             DispatchQueue.main.async {
                 self?.tableView.reloadData()
