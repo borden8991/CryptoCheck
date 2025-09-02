@@ -7,28 +7,40 @@
 
 import Foundation
 
-enum CurrencyMode {
-    case usd
-    case btc
+protocol MarketServiceProtocol {
+    func fetchMarketCoins(vsCurrency: String, completion: @escaping (Result<[CoinModel], Error>) -> Void)
+    
+    func fetchMarketCoinsByIDs(ids: String, completion: @escaping (Result<[CoinModel], Error>) -> Void)
+}
+
+enum CurrencyMode: String, CaseIterable {
+    case usd = "USD"
+    case btc = "BTC"
 }
 
 final class MarketViewModel {
     
     // MARK: - Properties
     
+    private let service: MarketServiceProtocol
     private(set) var coins: [CoinModel] = []
     private(set) var filteredCoins: [CoinModel] = []
     private(set) var btcPrice: Double = 1.0
     private(set) var isLoading: Bool = false
     
     private var isMarketCapSortedDescending = false
-    
     var currencyMode: CurrencyMode = .usd
     
     // MARK: - Callbacks
     
     var onLoadingStatusChanged: ((Bool) -> Void)?
     var onUpdate: (() -> Void)?
+    
+    // MARK: - Init
+    
+    init(service: MarketServiceProtocol = NetworkService.shared) {
+        self.service = service
+    }
     
     // MARK: - Public API
     
@@ -37,7 +49,7 @@ final class MarketViewModel {
         onLoadingStatusChanged?(true)
         
         if search.isEmpty {
-            NetworkService.shared.fetchMarketCoins { [weak self] result in
+            service.fetchMarketCoins(vsCurrency: "usd") { [weak self] result in
                 DispatchQueue.main.async {
                     self?.handleFetchResult(result)
                     self?.isLoading = false
@@ -111,7 +123,7 @@ final class MarketViewModel {
     }
     
     private func fetchCoinsByIDs(ids: String, completion: (() -> Void)? = nil) {
-        NetworkService.shared.fetchMarketCoinsByIDs(ids: ids) { [weak self] result in
+        service.fetchMarketCoinsByIDs(ids: ids) { [weak self] result in
             DispatchQueue.main.async {
                 guard let self else { return }
                 
