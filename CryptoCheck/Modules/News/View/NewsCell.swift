@@ -10,7 +10,11 @@ import SnapKit
 
 final class NewsCell: UITableViewCell {
     
+    //MARK: - Constants
+    
     static let identifier = "NewsCell"
+    
+    //MARK: - Private properties
     
     private var currentImageURL: URL?
     
@@ -34,7 +38,15 @@ final class NewsCell: UITableViewCell {
         let l = UILabel()
         l.font = .systemFont(ofSize: 14)
         l.textColor = .secondaryLabel
-        l.numberOfLines = 3
+        l.numberOfLines = 2
+        return l
+    }()
+    
+    private let sourceLabel: UILabel = {
+        let l = UILabel()
+        l.font = .systemFont(ofSize: 14)
+        l.textColor = .secondaryLabel
+        l.numberOfLines = 1
         return l
     }()
     
@@ -58,9 +70,10 @@ final class NewsCell: UITableViewCell {
         contentView.addSubview(thumbImageView)
         contentView.addSubview(titleLabel)
         contentView.addSubview(subtitleLabel)
+        contentView.addSubview(sourceLabel)
         
         thumbImageView.snp.makeConstraints { make in
-            make.size.equalTo(CGSize(width: 100, height: 80))
+            make.size.equalTo(CGSize(width: 120, height: 120))
             make.leading.equalToSuperview().offset(12)
             make.top.equalToSuperview().offset(12)
             make.bottom.lessThanOrEqualToSuperview().inset(12)
@@ -73,7 +86,13 @@ final class NewsCell: UITableViewCell {
         }
         
         subtitleLabel.snp.makeConstraints { make in
-            make.top.equalTo(titleLabel.snp.bottom).offset(6)
+            make.top.equalTo(titleLabel.snp.bottom).offset(3)
+            make.leading.trailing.equalTo(titleLabel)
+            //make.bottom.lessThanOrEqualToSuperview().inset(12)
+        }
+        
+        sourceLabel.snp.makeConstraints { make in
+            make.top.equalTo(subtitleLabel.snp.bottom).offset(3)
             make.leading.trailing.equalTo(titleLabel)
             make.bottom.lessThanOrEqualToSuperview().inset(12)
         }
@@ -84,6 +103,7 @@ final class NewsCell: UITableViewCell {
     func configure(with article: NewsArticle) {
         titleLabel.text = article.title
         subtitleLabel.text = article.description
+        sourceLabel.text = "Source: \(article.source_id)"
         
         if let urlStr = article.image_url, let url = URL(string: urlStr) {
             currentImageURL = url
@@ -96,11 +116,10 @@ final class NewsCell: UITableViewCell {
     
     private func loadImage(url: URL) {
         URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
-            guard let self = self,
+            guard let self,
                   let data,
                   let image = UIImage(data: data) else { return }
             DispatchQueue.main.async {
-                // проверяем, что картинка соответствует актуальному URL для этой ячейки
                 if self.currentImageURL == url {
                     self.thumbImageView.image = image
                 }

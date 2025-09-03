@@ -7,16 +7,17 @@
 
 import UIKit
 import SnapKit
-import SafariServices
 
-final class NewsViewController: UIViewController {
+final class NewsViewController: LocalizedViewController {
     
     // MARK: - Properties
+    
+    var onArticleSelected: ((URL) -> Void)?
     
     private let tableView: UITableView = {
         let t = UITableView()
         t.register(NewsCell.self, forCellReuseIdentifier: NewsCell.identifier)
-        t.rowHeight = 100
+        t.rowHeight = 120
         t.separatorInset = .zero
         return t
     }()
@@ -38,13 +39,12 @@ final class NewsViewController: UIViewController {
         setupView()
         setupLayout()
         bindViewModel()
-        viewModel.fetchNews(initial: true) // при первом старте
+        viewModel.fetchNews(initial: true)
     }
     
     // MARK: - Setup UI
     
     private func setupView() {
-        title = "Обзор"
         view.backgroundColor = .systemBackground
         
         view.addSubview(tableView)
@@ -80,13 +80,14 @@ final class NewsViewController: UIViewController {
                     self.activityIndicator.startAnimating()
                     
                 case .refreshing:
-                    // refreshControl сам уже крутится — ничего не делаем
                     break
                     
                 case .error(let message):
                     self.activityIndicator.stopAnimating()
                     self.refreshControl.endRefreshing()
-                    print("News error: \(message)")
+                    let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: "OK", style: .default))
+                    self.present(alert, animated: true)
                 }
             }
         }
@@ -103,6 +104,13 @@ final class NewsViewController: UIViewController {
     @objc private func refreshTriggered() {
         viewModel.fetchNews(refresh: true)
     }
+    
+    // MARK: - Language
+    
+    override func applyLocalizedText() {
+        super.applyLocalizedText()
+        title = "news_news".localized()
+    }
 }
 
 // MARK: - UITableViewDataSource, UITableViewDelegate
@@ -110,14 +118,12 @@ final class NewsViewController: UIViewController {
 extension NewsViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        viewModel.numberOfItems()
+        viewModel.articles.count
     }
     
-    func tableView(_ tableView: UITableView,
-                   cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: NewsCell.identifier, for: indexPath) as? NewsCell else { return UITableViewCell() }
         cell.configure(with: viewModel.article(at: indexPath.row))
-        
         return cell
     }
     
@@ -125,6 +131,6 @@ extension NewsViewController: UITableViewDataSource, UITableViewDelegate {
         tableView.deselectRow(at: indexPath, animated: true)
         let article = viewModel.article(at: indexPath.row)
         guard let s = article.link, let url = URL(string: s) else { return }
-        present(SFSafariViewController(url: url), animated: true)
+        onArticleSelected?(url) 
     }
 }
