@@ -14,41 +14,41 @@ enum ChartInterval: CaseIterable {
     
     var title: String {
         switch self {
-        case .hour: return "1H"
-        case .day: return "24H"
-        case .week: return "7D"
-        case .month: return "1M"
-        case .year: return "1Y"
+        case .hour: "1H"
+        case .day: "24H"
+        case .week: "7D"
+        case .month: "1M"
+        case .year: "1Y"
         }
     }
     
     var apiDays: String {
         switch self {
-        case .hour: return "0.04"
-        case .day: return "1"
-        case .week: return "7"
-        case .month: return "30"
-        case .year: return "365"
+        case .hour: "0.04"
+        case .day: "1"
+        case .week: "7"
+        case .month: "30"
+        case .year: "365"
         }
     }
     
     var desiredTickCount: Int {
         switch self {
-        case .hour, .day: return 6
-        case .week: return 6
-        case .month: return 6
-        case .year: return 6
+        case .hour, .day: 6
+        case .week: 6
+        case .month: 6
+        case .year: 6
         }
     }
     
     var axisFormat: Date.FormatStyle {
         switch self {
         case .hour, .day:
-            return .dateTime.hour().minute()
+                .dateTime.hour().minute()
         case .week, .month:
-            return .dateTime.day().month(.abbreviated)
+                .dateTime.day().month(.abbreviated)
         case .year:
-            return .dateTime.month(.abbreviated)
+                .dateTime.month(.abbreviated)
         }
     }
 }
@@ -64,8 +64,8 @@ struct CoinChartView: View {
               let maxPrice = prices.map({ $0.1 }).max()
         else { return 0...1 }
         let range = maxPrice - minPrice
-        let topPadding = range * 0.1        // 10% сверху
-        let bottomPadding = range * 0.05    // 5% снизу
+        let topPadding = range * 0.1
+        let bottomPadding = range * 0.05
         let lowerBound = max(minPrice - bottomPadding, minPrice * 0.98)
         let upperBound = maxPrice + topPadding
         
@@ -79,6 +79,8 @@ struct CoinChartView: View {
         }
         return Date(timeIntervalSince1970: first / 1000)...Date(timeIntervalSince1970: last / 1000)
     }
+    
+    //MARK: - Body
     
     var body: some View {
         Chart {
@@ -158,7 +160,6 @@ struct CoinChartView: View {
             }
         }
         .transaction { $0.animation = nil }
-        
     }
     
     private func nearestPrice(to date: Date) -> (Date, Double)? {
@@ -178,7 +179,7 @@ struct CoinChartView: View {
             (3, 66500),
             (4, 67500)
         ],
-        interval: ChartInterval.week
+        interval: ChartInterval.month
     )
     .frame(height: 300)
     .padding()
