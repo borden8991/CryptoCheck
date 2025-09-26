@@ -8,9 +8,18 @@
 import Foundation
 
 protocol MarketServiceProtocol {
-    func fetchMarketCoins(vsCurrency: String, completion: @escaping (Result<[CoinModel], Error>) -> Void)
     
-    func fetchMarketCoinsByIDs(ids: String, completion: @escaping (Result<[CoinModel], Error>) -> Void)
+    /// Грузим список монет с рынка
+    /// - Parameters:
+    ///   - currency: Валюта по которой отображается цена у крпиты
+    ///   - completion: Замыкание с результатом массива монет или ошибка
+    func fetchMarketCoins(currency: String, completion: @escaping (Result<[CoinModel], Error>) -> Void)
+    
+    /// Грузим список монет по их строковым идентификаторам
+    /// - Parameters:
+    ///   - coinID: Строка со списком идентификаторов монет
+    ///   - completion: Замыкание с результатом массива монет или ошибка
+    func fetchMarketCoinsByIDs(coinID: String, completion: @escaping (Result<[CoinModel], Error>) -> Void)
 }
 
 enum CurrencyMode: String, CaseIterable {
@@ -49,7 +58,7 @@ final class MarketViewModel {
         onLoadingStatusChanged?(true)
         
         if search.isEmpty {
-            service.fetchMarketCoins(vsCurrency: "usd") { [weak self] result in
+            service.fetchMarketCoins(currency: "usd") { [weak self] result in
                 DispatchQueue.main.async {
                     self?.handleFetchResult(result)
                     self?.isLoading = false
@@ -123,7 +132,7 @@ final class MarketViewModel {
     }
     
     private func fetchCoinsByIDs(ids: String, completion: (() -> Void)? = nil) {
-        service.fetchMarketCoinsByIDs(ids: ids) { [weak self] result in
+        service.fetchMarketCoinsByIDs(coinID: ids) { [weak self] result in
             DispatchQueue.main.async {
                 guard let self else { return }
                 
