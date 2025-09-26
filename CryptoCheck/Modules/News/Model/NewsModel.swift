@@ -17,7 +17,7 @@ struct NewsArticle: Codable {
     let title: String
     let description: String
     let link: String?
-    let pubDate: String?
-    let image_url: String?
-    let source_id: String
+    let date: String?
+    let imageUrl: String?
+    let sourceId: String
 }

@@ -15,17 +15,17 @@ final class NewsViewController: LocalizedViewController {
     var onArticleSelected: ((URL) -> Void)?
     
     private let tableView: UITableView = {
-        let t = UITableView()
-        t.register(NewsCell.self, forCellReuseIdentifier: NewsCell.identifier)
-        t.rowHeight = 120
-        t.separatorInset = .zero
-        return t
+        let table = UITableView()
+        table.register(NewsCell.self, forCellReuseIdentifier: NewsCell.identifier)
+        table.rowHeight = 120
+        table.separatorInset = .zero
+        return table
     }()
     
     private let activityIndicator: UIActivityIndicatorView = {
-        let v = UIActivityIndicatorView(style: .large)
-        v.hidesWhenStopped = true
-        return v
+        let view = UIActivityIndicatorView(style: .large)
+        view.hidesWhenStopped = true
+        return view
     }()
     
     private let refreshControl = UIRefreshControl()
@@ -39,7 +39,7 @@ final class NewsViewController: LocalizedViewController {
         setupView()
         setupLayout()
         bindViewModel()
-        viewModel.fetchNews(initial: true)
+        self.viewModel.fetchNews(initial: true)
     }
     
     // MARK: - Setup UI
@@ -47,28 +47,28 @@ final class NewsViewController: LocalizedViewController {
     private func setupView() {
         view.backgroundColor = .systemBackground
         
-        view.addSubview(tableView)
-        view.addSubview(activityIndicator)
+        view.addSubview(self.tableView)
+        view.addSubview(self.activityIndicator)
         
-        tableView.dataSource = self
-        tableView.delegate = self
-        tableView.alwaysBounceVertical = true
+        self.tableView.dataSource = self
+        self.tableView.delegate = self
+        self.tableView.alwaysBounceVertical = true
         
-        refreshControl.addTarget(self, action: #selector(refreshTriggered), for: .valueChanged)
-        tableView.refreshControl = refreshControl
+        self.refreshControl.addTarget(self, action: #selector(refreshTriggered), for: .valueChanged)
+        self.tableView.refreshControl = self.refreshControl
     }
     
     private func setupLayout() {
-        tableView.snp.makeConstraints { make in
+        self.tableView.snp.makeConstraints { make in
             make.edges.equalTo(view.safeAreaLayoutGuide)
         }
-        activityIndicator.snp.makeConstraints { make in
+        self.activityIndicator.snp.makeConstraints { make in
             make.center.equalToSuperview()
         }
     }
     
     private func bindViewModel() {
-        viewModel.onStateChange = { [weak self] state in
+        self.viewModel.onStateChange = { [weak self] state in
             guard let self else { return }
             DispatchQueue.main.async {
                 switch state {
@@ -92,7 +92,7 @@ final class NewsViewController: LocalizedViewController {
             }
         }
         
-        viewModel.onUpdate = { [weak self] in
+        self.viewModel.onUpdate = { [weak self] in
             DispatchQueue.main.async {
                 self?.tableView.reloadData()
             }
@@ -102,7 +102,7 @@ final class NewsViewController: LocalizedViewController {
     // MARK: - Actions
     
     @objc private func refreshTriggered() {
-        viewModel.fetchNews(refresh: true)
+        self.viewModel.fetchNews(refresh: true)
     }
     
     // MARK: - Language
@@ -118,19 +118,19 @@ final class NewsViewController: LocalizedViewController {
 extension NewsViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        viewModel.articles.count
+        self.viewModel.articles.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: NewsCell.identifier, for: indexPath) as? NewsCell else { return UITableViewCell() }
-        cell.configure(with: viewModel.article(at: indexPath.row))
+        cell.configure(with: self.viewModel.article(at: indexPath.row))
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let article = viewModel.article(at: indexPath.row)
+        let article = self.viewModel.article(at: indexPath.row)
         guard let s = article.link, let url = URL(string: s) else { return }
-        onArticleSelected?(url) 
+        self.onArticleSelected?(url)
     }
 }

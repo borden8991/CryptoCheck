@@ -12,42 +12,44 @@ final class NewsCell: UITableViewCell {
     
     //MARK: - Constants
     
-    static let identifier = "NewsCell"
+    static var identifier: String {
+        String(describing: self)
+    }
     
     //MARK: - Private properties
     
-    private var currentImageURL: URL?
+    private var currentImageUrl: URL?
     
     private let thumbImageView: UIImageView = {
-        let iv = UIImageView()
-        iv.contentMode = .scaleAspectFill
-        iv.clipsToBounds = true
-        iv.layer.cornerRadius = 8
-        iv.image = UIImage(systemName: "photo")
-        return iv
+        let image = UIImageView()
+        image.contentMode = .scaleAspectFill
+        image.clipsToBounds = true
+        image.layer.cornerRadius = 8
+        image.image = UIImage(systemName: "photo")
+        return image
     }()
     
     private let titleLabel: UILabel = {
-        let l = UILabel()
-        l.font = .systemFont(ofSize: 16, weight: .semibold)
-        l.numberOfLines = 2
-        return l
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 16, weight: .semibold)
+        label.numberOfLines = 2
+        return label
     }()
     
     private let subtitleLabel: UILabel = {
-        let l = UILabel()
-        l.font = .systemFont(ofSize: 14)
-        l.textColor = .secondaryLabel
-        l.numberOfLines = 2
-        return l
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 14)
+        label.textColor = .secondaryLabel
+        label.numberOfLines = 2
+        return label
     }()
     
     private let sourceLabel: UILabel = {
-        let l = UILabel()
-        l.font = .systemFont(ofSize: 14)
-        l.textColor = .secondaryLabel
-        l.numberOfLines = 1
-        return l
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 14)
+        label.textColor = .secondaryLabel
+        label.numberOfLines = 1
+        return label
     }()
     
     // MARK: - Init
@@ -56,12 +58,13 @@ final class NewsCell: UITableViewCell {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupUI()
     }
+    
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
     override func prepareForReuse() {
         super.prepareForReuse()
         thumbImageView.image = UIImage(systemName: "photo")
-        currentImageURL = nil
+        currentImageUrl = nil
     }
     
     // MARK: - Setup UI
@@ -88,7 +91,6 @@ final class NewsCell: UITableViewCell {
         subtitleLabel.snp.makeConstraints { make in
             make.top.equalTo(titleLabel.snp.bottom).offset(3)
             make.leading.trailing.equalTo(titleLabel)
-            //make.bottom.lessThanOrEqualToSuperview().inset(12)
         }
         
         sourceLabel.snp.makeConstraints { make in
@@ -103,16 +105,18 @@ final class NewsCell: UITableViewCell {
     func configure(with article: NewsArticle) {
         titleLabel.text = article.title
         subtitleLabel.text = article.description
-        sourceLabel.text = "Source: \(article.source_id)"
+        sourceLabel.text = "Source: \(article.sourceId)"
         
-        if let urlStr = article.image_url, let url = URL(string: urlStr) {
-            currentImageURL = url
+        if let urlStr = article.imageUrl, let url = URL(string: urlStr) {
+            currentImageUrl = url
             loadImage(url: url)
         } else {
             thumbImageView.image = UIImage(systemName: "photo")
-            currentImageURL = nil
+            currentImageUrl = nil
         }
     }
+    
+    //MARK: - Private methods
     
     private func loadImage(url: URL) {
         URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
@@ -120,7 +124,7 @@ final class NewsCell: UITableViewCell {
                   let data,
                   let image = UIImage(data: data) else { return }
             DispatchQueue.main.async {
-                if self.currentImageURL == url {
+                if self.currentImageUrl == url {
                     self.thumbImageView.image = image
                 }
             }
