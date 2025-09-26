@@ -7,25 +7,34 @@
 
 import UIKit
 import SnapKit
+import SkeletonView
 
 final class MarketCell: UITableViewCell {
     
     // MARK: - Identifier
     
-    static let identifier = "MarketCell"
+    static var identifier: String {
+        String(describing: self)
+    }
     
     // MARK: - Properties
     
-    private let numberLabel = MarketCell.makeLabel(fontWeight: .regular, alignment: .center)
-    private let nameLabel = MarketCell.makeLabel(fontWeight: .medium, alignment: .center)
-    private let priceLabel = MarketCell.makeLabel(fontWeight: .regular, alignment: .right)
-    private let changeLabel = MarketCell.makeLabel(fontWeight: .regular, alignment: .right)
-    private let marketCapLabel = MarketCell.makeLabel(fontWeight: .regular, alignment: .right)
+    private let numberLabel = makeLabel(fontWeight: .regular, alignment: .center)
+    private let nameLabel = makeLabel(fontWeight: .medium, alignment: .center)
+    private let priceLabel = makeLabel(fontWeight: .regular, alignment: .right)
+    private let changeLabel = makeLabel(fontWeight: .regular, alignment: .right)
+    private let marketCapLabel = makeLabel(fontWeight: .regular, alignment: .right)
     
-    // MARK: - Init
+    //MARK: - Init
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupUI()
+        isSkeletonable = true
+        contentView.isSkeletonable = true
+        [numberLabel, nameLabel, priceLabel, changeLabel, marketCapLabel].forEach {
+            $0.isSkeletonable = true
+        }
     }
     
     required init?(coder: NSCoder) {
@@ -62,7 +71,7 @@ final class MarketCell: UITableViewCell {
         changeLabel.snp.makeConstraints {
             $0.leading.equalTo(priceLabel.snp.trailing).offset(8)
             $0.centerY.equalToSuperview()
-            $0.width.equalTo(60)
+            $0.width.equalTo(80)
         }
         
         marketCapLabel.snp.makeConstraints {
@@ -78,9 +87,7 @@ final class MarketCell: UITableViewCell {
         numberLabel.text = "\(index)"
         nameLabel.text = model.symbol.uppercased()
         
-        priceLabel.text = currencyMode == .usd
-        ? String(format: "%.2f", price)
-        : String(format: "%.6f", price)
+        priceLabel.text = formatPrice(price)
         
         if let change = model.priceChangePercentage24H {
             let isColorBlindMode = UserDefaults.standard.bool(forKey: "isColorBlindMode")
@@ -96,6 +103,24 @@ final class MarketCell: UITableViewCell {
             changeLabel.textColor = .secondaryLabel
         }
         marketCapLabel.text = "\(model.marketCap) $"
+    }
+    
+    private func formatPrice(_ value: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.minimumFractionDigits = 2
+        
+        let intPart = Int(value)
+        
+        if intPart >= 100 {
+            formatter.maximumFractionDigits = 2
+        } else if intPart >= 1 {
+            formatter.maximumFractionDigits = 4
+        } else {
+            formatter.maximumFractionDigits = 6
+        }
+        
+        return formatter.string(from: NSNumber(value: value)) ?? "\(value)"
     }
 }
 
