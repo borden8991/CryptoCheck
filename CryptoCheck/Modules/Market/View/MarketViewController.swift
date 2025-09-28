@@ -10,6 +10,9 @@ import SnapKit
 
 final class MarketViewController: UIViewController {
     
+    var onCoinSelected: ((CoinModel) -> Void)?
+    var onSearchRequested: (() -> Void)?
+    
     // MARK: - Properties
     
     private let viewModel = MarketViewModel()
@@ -22,8 +25,6 @@ final class MarketViewController: UIViewController {
         tableView.separatorStyle = .none
         return tableView
     }()
-    
-    private let activityIndicator = UIActivityIndicatorView(style: .large)
     
     private let marketCapHeaderLabel: UILabel = {
         let label = UILabel()
@@ -79,7 +80,6 @@ final class MarketViewController: UIViewController {
     
     private func setupUI() {
         view.backgroundColor = .systemBackground
-        title = "Market"
         
         tableView.tableHeaderView = makeTableHeader()
         
@@ -87,7 +87,6 @@ final class MarketViewController: UIViewController {
         
         view.addSubview(currencySwitch)
         view.addSubview(tableView)
-        view.addSubview(activityIndicator)
         
         currencySwitch.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide).offset(8)
@@ -98,10 +97,6 @@ final class MarketViewController: UIViewController {
             $0.top.equalTo(currencySwitch.snp.bottom).offset(8)
             $0.leading.trailing.equalToSuperview()
             $0.bottom.equalTo(view.safeAreaLayoutGuide)
-        }
-        
-        activityIndicator.snp.makeConstraints {
-            $0.center.equalToSuperview()
         }
     }
     
@@ -121,25 +116,25 @@ final class MarketViewController: UIViewController {
         numberLabel.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(8)
             $0.centerY.equalToSuperview()
-            $0.width.equalTo(30)
+            $0.width.equalTo(30).priority(.low)
         }
         
         nameLabel.snp.makeConstraints {
             $0.leading.equalTo(numberLabel.snp.trailing).offset(8)
             $0.centerY.equalToSuperview()
-            $0.width.equalTo(50)
+            $0.width.equalTo(50).priority(.low)
         }
         
         priceLabel.snp.makeConstraints {
             $0.leading.equalTo(nameLabel.snp.trailing).offset(8)
             $0.centerY.equalToSuperview()
-            $0.width.equalTo(80)
+            $0.width.equalTo(80).priority(.low)
         }
         
         changeLabel.snp.makeConstraints {
             $0.leading.equalTo(priceLabel.snp.trailing).offset(8)
             $0.centerY.equalToSuperview()
-            $0.width.equalTo(60)
+            $0.width.equalTo(60).priority(.low)
         }
         
         marketCapLabel.snp.makeConstraints {
@@ -176,12 +171,6 @@ final class MarketViewController: UIViewController {
     }
     
     private func bindViewModel() {
-        viewModel.onLoadingStatusChanged = { [weak self] isLoading in
-            DispatchQueue.main.async {
-                isLoading ? self?.activityIndicator.startAnimating() : self?.activityIndicator.stopAnimating()
-            }
-        }
-        
         viewModel.onUpdate = { [weak self] in
             DispatchQueue.main.async {
                 self?.tableView.reloadData()
@@ -251,9 +240,7 @@ extension MarketViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: MarketCell.identifier, for: indexPath) as? MarketCell else {
-            return UITableViewCell()
-        }
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: MarketCell.identifier, for: indexPath) as? MarketCell else { return UITableViewCell() }
         let coin = viewModel.coin(at: indexPath.row)
         let price = viewModel.price(for: coin)
         cell.configure(with: coin, price: price, index: indexPath.row + 1, currencyMode: viewModel.currencyMode)
@@ -261,10 +248,8 @@ extension MarketViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let coin = viewModel.coins[indexPath.row]
-        let detailVC = CoinDetailViewController(coin: coin)
-        tableView.deselectRow(at: indexPath, animated: true)
-        navigationController?.pushViewController(detailVC, animated: true)
+        let coin = viewModel.coin(at: indexPath.row)
+        onCoinSelected?(coin)
     }
 }
 

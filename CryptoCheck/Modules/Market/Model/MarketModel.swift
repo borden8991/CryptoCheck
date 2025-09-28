@@ -8,6 +8,7 @@
 import Foundation
 
 struct CoinModel: Decodable {
+    
     let id: String
     let symbol: String
     let name: String
@@ -15,7 +16,7 @@ struct CoinModel: Decodable {
     let circulatingSupply: Double
     let priceChangePercentage24H: Double?
     let marketCap: Int
-
+    
     enum CodingKeys: String, CodingKey {
         case id
         case symbol
@@ -26,7 +27,3 @@ struct CoinModel: Decodable {
         case marketCap = "market_cap"
     }
 }
-
-
-
-
