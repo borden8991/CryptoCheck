@@ -7,6 +7,7 @@
 
 import UIKit
 import SnapKit
+import SkeletonView
 
 final class MarketViewController: UIViewController {
     
@@ -55,14 +56,14 @@ final class MarketViewController: UIViewController {
         bindViewModel()
         startAutoRefresh()
         
-        viewModel.fetchCoins { [weak self] in
+        self.viewModel.fetchCoins { [weak self] in
             self?.tableView.reloadData()
         }
         
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(reloadData),
-            name: NSNotification.Name("ColorBlindModeChanged"),
+            name: ThemeManager.didChange,
             object: nil
         )
     }
@@ -81,20 +82,20 @@ final class MarketViewController: UIViewController {
     private func setupUI() {
         view.backgroundColor = .systemBackground
         
-        tableView.tableHeaderView = makeTableHeader()
+        self.tableView.tableHeaderView = makeTableHeader()
         
-        currencySwitch.addTarget(self, action: #selector(currencyChanged), for: .valueChanged)
+        self.currencySwitch.addTarget(self, action: #selector(currencyChanged), for: .valueChanged)
         
-        view.addSubview(currencySwitch)
-        view.addSubview(tableView)
+        view.addSubview(self.currencySwitch)
+        view.addSubview(self.tableView)
         
-        currencySwitch.snp.makeConstraints {
+        self.currencySwitch.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide).offset(8)
             $0.leading.equalTo(view.safeAreaLayoutGuide).offset(8)
         }
         
-        tableView.snp.makeConstraints {
-            $0.top.equalTo(currencySwitch.snp.bottom).offset(8)
+        self.tableView.snp.makeConstraints {
+            $0.top.equalTo(self.currencySwitch.snp.bottom).offset(8)
             $0.leading.trailing.equalToSuperview()
             $0.bottom.equalTo(view.safeAreaLayoutGuide)
         }
@@ -103,11 +104,11 @@ final class MarketViewController: UIViewController {
     private func makeTableHeader() -> UIView {
         let container = UIView()
         
-        let numberLabel = makeHeaderLabel(text: "#", alignment: .center)
-        let nameLabel = makeHeaderLabel(text: "Coin", alignment: .center)
-        let priceLabel = makeHeaderLabel(text: "Price", alignment: .right)
-        let changeLabel = makeHeaderLabel(text: "24h %", alignment: .right)
-        let marketCapLabel = marketCapHeaderLabel
+        let numberLabel = self.makeHeaderLabel(text: "#", alignment: .center)
+        let nameLabel = self.makeHeaderLabel(text: "Coin", alignment: .center)
+        let priceLabel = self.makeHeaderLabel(text: "Price", alignment: .right)
+        let changeLabel = self.makeHeaderLabel(text: "24h %", alignment: .right)
+        let marketCapLabel = self.marketCapHeaderLabel
         
         [numberLabel, nameLabel, priceLabel, changeLabel, marketCapLabel].forEach {
             container.addSubview($0)
@@ -116,25 +117,25 @@ final class MarketViewController: UIViewController {
         numberLabel.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(8)
             $0.centerY.equalToSuperview()
-            $0.width.equalTo(30).priority(.low)
+            $0.width.equalTo(30)
         }
         
         nameLabel.snp.makeConstraints {
             $0.leading.equalTo(numberLabel.snp.trailing).offset(8)
             $0.centerY.equalToSuperview()
-            $0.width.equalTo(50).priority(.low)
+            $0.width.equalTo(50)
         }
         
         priceLabel.snp.makeConstraints {
             $0.leading.equalTo(nameLabel.snp.trailing).offset(8)
             $0.centerY.equalToSuperview()
-            $0.width.equalTo(80).priority(.low)
+            $0.width.equalTo(80)
         }
         
         changeLabel.snp.makeConstraints {
             $0.leading.equalTo(priceLabel.snp.trailing).offset(8)
             $0.centerY.equalToSuperview()
-            $0.width.equalTo(60).priority(.low)
+            $0.width.equalTo(80)
         }
         
         marketCapLabel.snp.makeConstraints {
@@ -148,11 +149,11 @@ final class MarketViewController: UIViewController {
     }
     
     private func setupTableView() {
-        tableView.dataSource = self
-        tableView.delegate = self
-        
-        refreshControl.addTarget(self, action: #selector(refreshData), for: .valueChanged)
-        tableView.refreshControl = refreshControl
+        self.tableView.dataSource = self
+        self.tableView.delegate = self
+        self.tableView.isSkeletonable = true
+        self.refreshControl.addTarget(self, action: #selector(refreshData), for: .valueChanged)
+        self.tableView.refreshControl = self.refreshControl
     }
     
     private func setupNavigationBar() {
@@ -167,13 +168,18 @@ final class MarketViewController: UIViewController {
     
     private func setupHeaderTapGesture() {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(didTapMarketCapHeader))
-        marketCapHeaderLabel.addGestureRecognizer(tapGesture)
+        self.marketCapHeaderLabel.addGestureRecognizer(tapGesture)
     }
     
     private func bindViewModel() {
-        viewModel.onUpdate = { [weak self] in
+        self.viewModel.onUpdate = { [weak self] in
+            self?.reloadData()
+        }
+        
+        self.viewModel.onLoadingStatusChanged = { [weak self] isLoading in
             DispatchQueue.main.async {
-                self?.tableView.reloadData()
+                guard let self else { return }
+                isLoading ? self.tableView.showAnimatedGradientSkeleton() : self.tableView.hideSkeleton()
             }
         }
     }
@@ -181,30 +187,26 @@ final class MarketViewController: UIViewController {
     // MARK: - Actions
     
     @objc private func reloadData() {
-        tableView.reloadData()
+        self.tableView.reloadData()
     }
     
     @objc private func refreshData() {
-        viewModel.fetchCoins { [weak self] in
+        self.viewModel.fetchCoins { [weak self] in
             self?.tableView.reloadData()
             self?.refreshControl.endRefreshing()
         }
     }
     
     @objc private func didTapSearch() {
-        tabBarController?.selectedIndex = 2
+        onSearchRequested?()
     }
     
     @objc private func didTapMarketCapHeader() {
-        viewModel.toggleSortByMarketCap()
+        self.viewModel.toggleSortByMarketCap()
     }
     
     @objc private func currencyChanged() {
-        if currencySwitch.selectedSegmentIndex == 0 {
-            viewModel.setCurrencyMode(.usd)
-        } else {
-            viewModel.setCurrencyMode(.btc)
-        }
+        self.currencySwitch.selectedSegmentIndex == 0 ? self.viewModel.setCurrencyMode(.usd) : self.viewModel.setCurrencyMode(.btc)
     }
     
     // MARK: - Auto Refresh
@@ -236,19 +238,20 @@ final class MarketViewController: UIViewController {
 
 extension MarketViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        viewModel.coins.count
+        self.viewModel.coins.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: MarketCell.identifier, for: indexPath) as? MarketCell else { return UITableViewCell() }
-        let coin = viewModel.coin(at: indexPath.row)
-        let price = viewModel.price(for: coin)
-        cell.configure(with: coin, price: price, index: indexPath.row + 1, currencyMode: viewModel.currencyMode)
+        let coin = self.viewModel.coin(at: indexPath.row)
+        let price = self.viewModel.price(for: coin)
+        cell.configure(with: coin, price: price, index: indexPath.row + 1, currencyMode: self.viewModel.currencyMode)
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let coin = viewModel.coin(at: indexPath.row)
+        tableView.deselectRow(at: indexPath, animated: true)
+        let coin = self.viewModel.coin(at: indexPath.row)
         onCoinSelected?(coin)
     }
 }
@@ -258,5 +261,17 @@ extension MarketViewController: UITableViewDataSource {
 extension MarketViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         60
+    }
+}
+
+// MARK: - SkeletonTableViewDataSource
+
+extension MarketViewController: SkeletonTableViewDataSource {
+    func collectionSkeletonView(_ skeletonView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        10
+    }
+    
+    func collectionSkeletonView(_ skeletonView: UITableView, cellIdentifierForRowAt indexPath: IndexPath) -> ReusableCellIdentifier {
+        MarketCell.identifier
     }
 }
