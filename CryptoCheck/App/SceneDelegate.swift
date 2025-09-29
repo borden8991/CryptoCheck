@@ -6,51 +6,25 @@
 //
 
 import UIKit
+import GoogleSignIn
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
-
+    
     var window: UIWindow?
-
+    var appCoordinator: AppCoordinator?
+    
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        guard let url = URLContexts.first?.url else { return }
+        GIDSignIn.sharedInstance.handle(url)
+    }
+    
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        guard let ws = (scene as? UIWindowScene) else { return }
+        let window = UIWindow(windowScene: ws)
+        self.window = window
         
-        guard let windowScene = (scene as? UIWindowScene) else { return }
-        window = UIWindow(windowScene: windowScene)
-        
-        let tabBarVC = UITabBarController()
-        
-        let marketVC = UINavigationController(rootViewController: MarketViewController())
-        let portfolioVC = UIViewController()
-        let searchVC = UINavigationController(rootViewController: SearchViewController())
-        let overviewVC = UINavigationController(rootViewController: NewsViewController())
-        let profileVC = UINavigationController(rootViewController: ProfileViewController())
-        
-        marketVC.tabBarItem = UITabBarItem(title: "Рынок",
-                                           image: UIImage(systemName: "chart.line.uptrend.xyaxis"),
-                                           tag: 0)
-        
-        portfolioVC.tabBarItem = UITabBarItem(title: "Портфель",
-                                              image: UIImage(systemName: "briefcase"),
-                                              tag: 1)
-        
-        searchVC.tabBarItem = UITabBarItem(title: "Поиск",
-                                           image: UIImage(systemName: "magnifyingglass"),
-                                           tag: 2)
-        
-        overviewVC.tabBarItem = UITabBarItem(title: "Обзор",
-                                             image: UIImage(systemName: "square.grid.2x2"),
-                                             tag: 3)
-        
-        profileVC.tabBarItem = UITabBarItem(title: "Профиль",
-                                            image: UIImage(systemName: "person"),
-                                            tag: 4)
-        
-        tabBarVC.viewControllers = [marketVC, portfolioVC, searchVC, overviewVC, profileVC]
-        
-        let isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
-        window?.overrideUserInterfaceStyle = isDarkMode ? .dark : .light
-        
-        self.window?.rootViewController = tabBarVC
-        self.window?.makeKeyAndVisible()
+        self.appCoordinator = AppCoordinator(window: window)
+        self.appCoordinator?.start()
     }
     
     func sceneDidDisconnect(_ scene: UIScene) {
@@ -81,4 +55,3 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // to restore the scene back to its current state.
     }
 }
-
