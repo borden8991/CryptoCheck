@@ -18,7 +18,7 @@ struct SearchCoin: Codable {
     let marketCapRank: Int?
     let thumb: String
     let large: String
-
+    
     enum CodingKeys: String, CodingKey {
         case id, name, symbol
         case marketCapRank = "market_cap_rank"
